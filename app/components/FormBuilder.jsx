@@ -3,6 +3,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { useFormStore } from '../state/useFormStore';
 import FieldBlock from './FieldBlock';
 import FieldSettingsModal from './FieldSettingsModal';
+import PreviewPane from './PreviewPane';
+import DevicePreviewToggler from './DevicePreviewToggler';
 import { useState } from 'react';
 
 const FIELD_TYPES = [
@@ -15,7 +17,7 @@ const FIELD_TYPES = [
 
 export default function FormBuilder() {
   const [selectedField, setSelectedField] = useState(null);
-  const { fields, addField, reorderFields } = useFormStore();
+  const { fields, addField, reorderFields, device } = useFormStore();
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -48,6 +50,17 @@ export default function FormBuilder() {
     addField(newField);
   };
 
+  const getPreviewWidth = () => {
+    switch (device) {
+      case 'mobile':
+        return 'max-w-sm';
+      case 'tablet':
+        return 'max-w-2xl';
+      default:
+        return 'max-w-4xl';
+    }
+  };
+
   return (
     <div className="flex gap-4 p-4">
       <div className="w-64 bg-gray-50 p-4 rounded-lg">
@@ -65,7 +78,7 @@ export default function FormBuilder() {
         </div>
       </div>
       
-      <div className="flex-1">
+      <div className="flex-1 space-y-4">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -83,6 +96,11 @@ export default function FormBuilder() {
             </div>
           </SortableContext>
         </DndContext>
+      </div>
+
+      <div className={`w-full ${getPreviewWidth()} bg-gray-50 p-4 rounded-lg`}>
+        <DevicePreviewToggler />
+        <PreviewPane />
       </div>
 
       {selectedField && (
