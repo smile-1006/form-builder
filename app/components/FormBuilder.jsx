@@ -6,7 +6,7 @@ import FieldSettingsModal from './FieldSettingsModal';
 import PreviewPane from './PreviewPane';
 import DevicePreviewToggler from './DevicePreviewToggler';
 import { useState } from 'react';
-import { PlusIcon, ShareIcon, SaveIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ShareIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 const FIELD_TYPES = [
   { 
@@ -139,7 +139,7 @@ export default function FormBuilder() {
               onClick={handleSaveForm}
               className="w-full flex items-center justify-center space-x-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <SaveIcon className="w-5 h-5" />
+              <ArrowDownTrayIcon className="w-5 h-5" />
               <span>Save Form</span>
             </button>
             <button
