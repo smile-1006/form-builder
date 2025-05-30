@@ -3,7 +3,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { useFormStore } from '../state/useFormStore';
 
 export default function FieldSettingsModal({ field, onClose }) {
-  const updateField = useFormStore(state => state.updateField);
+  const { updateField, totalSteps } = useFormStore();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -13,7 +13,13 @@ export default function FieldSettingsModal({ field, onClose }) {
       placeholder: formData.get('placeholder'),
       required: formData.get('required') === 'on',
       helpText: formData.get('helpText'),
-      step: parseInt(formData.get('step'), 10)
+      step: parseInt(formData.get('step'), 10),
+      validation: {
+        minLength: formData.get('minLength') ? parseInt(formData.get('minLength'), 10) : null,
+        maxLength: formData.get('maxLength') ? parseInt(formData.get('maxLength'), 10) : null,
+        pattern: formData.get('pattern') || null,
+        message: formData.get('validationMessage') || null
+      }
     };
     
     if (field.type === 'select' || field.type === 'radio') {
@@ -83,6 +89,23 @@ export default function FieldSettingsModal({ field, onClose }) {
                     </label>
                   </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Step
+                      <select
+                        name="step"
+                        defaultValue={field.step}
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      >
+                        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+                          <option key={step} value={step}>
+                            Step {step}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
                   {(field.type === 'select' || field.type === 'radio') && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
@@ -109,17 +132,57 @@ export default function FieldSettingsModal({ field, onClose }) {
                     </label>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Step
-                      <input
-                        type="number"
-                        name="step"
-                        min="1"
-                        defaultValue={field.step || 1}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </label>
+                  <div className="space-y-4">
+                    <h3 className="text-sm font-medium text-gray-700">Validation</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Min Length
+                          <input
+                            type="number"
+                            name="minLength"
+                            defaultValue={field.validation?.minLength}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </label>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Max Length
+                          <input
+                            type="number"
+                            name="maxLength"
+                            defaultValue={field.validation?.maxLength}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Pattern (regex)
+                        <input
+                          type="text"
+                          name="pattern"
+                          defaultValue={field.validation?.pattern}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </label>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Validation Message
+                        <input
+                          type="text"
+                          name="validationMessage"
+                          defaultValue={field.validation?.message}
+                          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="flex items-center">

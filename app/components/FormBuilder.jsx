@@ -6,7 +6,7 @@ import FieldSettingsModal from './FieldSettingsModal';
 import PreviewPane from './PreviewPane';
 import DevicePreviewToggler from './DevicePreviewToggler';
 import { useState } from 'react';
-import { PlusIcon, ShareIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ShareIcon, ArrowDownTrayIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
 
 const FIELD_TYPES = [
   { 
@@ -38,12 +38,37 @@ const FIELD_TYPES = [
     label: 'Radio Group',
     icon: '⭕',
     description: 'Choose one option from multiple choices'
+  },
+  { 
+    id: 'date', 
+    label: 'Date Input',
+    icon: '📅',
+    description: 'Date picker for temporal input'
+  }
+];
+
+const TEMPLATES = [
+  {
+    id: 'contact',
+    name: 'Contact Us',
+    description: 'Basic contact form with name, email, and message fields'
   }
 ];
 
 export default function FormBuilder() {
   const [selectedField, setSelectedField] = useState(null);
-  const { fields, addField, reorderFields, device, saveForm } = useFormStore();
+  const { 
+    fields, 
+    addField, 
+    reorderFields, 
+    device, 
+    saveForm,
+    loadTemplate,
+    currentStep,
+    totalSteps,
+    setCurrentStep
+  } = useFormStore();
+  
   const [showFieldMenu, setShowFieldMenu] = useState(false);
   
   const sensors = useSensors(
@@ -72,7 +97,7 @@ export default function FormBuilder() {
       label: `New ${type.label}`,
       placeholder: '',
       required: false,
-      step: 1
+      step: currentStep
     };
     addField(newField);
     setShowFieldMenu(false);
@@ -95,6 +120,8 @@ export default function FormBuilder() {
         return 'max-w-4xl';
     }
   };
+
+  const currentFields = fields.filter(f => f.step === currentStep);
 
   return (
     <div className="flex gap-6 p-6 bg-gray-50 min-h-screen">
@@ -133,6 +160,22 @@ export default function FormBuilder() {
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Templates</h2>
+          <div className="space-y-2">
+            {TEMPLATES.map((template) => (
+              <button
+                key={template.id}
+                onClick={() => loadTemplate(template.id)}
+                className="w-full p-3 text-left rounded-lg bg-white border border-gray-200 hover:border-blue-500 hover:shadow-sm transition-all"
+              >
+                <h3 className="font-medium text-gray-900">{template.name}</h3>
+                <p className="text-xs text-gray-500">{template.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Actions</h2>
           <div className="space-y-2">
             <button
@@ -158,14 +201,44 @@ export default function FormBuilder() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        {/* Step Navigation */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Step {currentStep} of {totalSteps}
+            </h2>
+            <div className="flex space-x-2">
+              {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
+                <button
+                  key={step}
+                  onClick={() => setCurrentStep(step)}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    step === currentStep
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {step}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-blue-600 transition-all"
+              style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+            />
+          </div>
+        </div>
+
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext items={fields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={currentFields.map(f => f.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
-              {fields.length === 0 ? (
+              {currentFields.length === 0 ? (
                 <div className="text-center py-12 px-4">
                   <div className="text-6xl mb-4">👋</div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Start Building Your Form</h3>
@@ -178,7 +251,7 @@ export default function FormBuilder() {
                   </button>
                 </div>
               ) : (
-                fields.map((field) => (
+                currentFields.map((field) => (
                   <FieldBlock
                     key={field.id}
                     field={field}
