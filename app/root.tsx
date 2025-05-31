@@ -4,7 +4,6 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 import { useFormStore } from "./state/useFormStore";
@@ -26,7 +25,24 @@ export const links: LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const { theme } = useFormStore();
+  const { theme, setTheme } = useFormStore();
+  
+  useEffect(() => {
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTheme('dark');
+    }
+  }, [setTheme]);
+
+  useEffect(() => {
+    // Save theme preference
+    localStorage.setItem('theme', theme);
+    // Update document class
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  }, [theme]);
   
   return (
     <html lang="en" className={theme}>

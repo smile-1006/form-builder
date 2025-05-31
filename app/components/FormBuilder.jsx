@@ -5,8 +5,9 @@ import FieldBlock from './FieldBlock';
 import FieldSettingsModal from './FieldSettingsModal';
 import PreviewPane from './PreviewPane';
 import DevicePreviewToggler from './DevicePreviewToggler';
+import ThemeToggler from './ThemeToggler';
 import { useState } from 'react';
-import { PlusIcon, ShareIcon, ArrowDownTrayIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, ShareIcon, ArrowDownTrayIcon, ArrowUturnLeftIcon, ArrowUturnRightIcon } from '@heroicons/react/24/outline';
 
 const FIELD_TYPES = [
   { 
@@ -66,7 +67,10 @@ export default function FormBuilder() {
     loadTemplate,
     currentStep,
     totalSteps,
-    setCurrentStep
+    setCurrentStep,
+    undo,
+    redo,
+    lastSaved
   } = useFormStore();
   
   const [showFieldMenu, setShowFieldMenu] = useState(false);
@@ -124,19 +128,46 @@ export default function FormBuilder() {
   const currentFields = fields.filter(f => f.step === currentStep);
 
   return (
-    <div className="flex gap-6 p-6 bg-gray-50 min-h-screen">
+    <div className="flex gap-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
       {/* Left Sidebar */}
       <div className="w-72 space-y-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Add Fields</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add Fields</h2>
+            <div className="flex items-center space-x-2">
+              <ThemeToggler />
+              <button
+                onClick={() => setShowFieldMenu(!showFieldMenu)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <PlusIcon className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+          
+          {/* Undo/Redo buttons */}
+          <div className="flex items-center justify-end space-x-2 mb-4">
             <button
-              onClick={() => setShowFieldMenu(!showFieldMenu)}
-              className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-50"
+              onClick={undo}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              title="Undo"
             >
-              <PlusIcon className="w-5 h-5" />
+              <ArrowUturnLeftIcon className="w-5 h-5" />
+            </button>
+            <button
+              onClick={redo}
+              className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              title="Redo"
+            >
+              <ArrowUturnRightIcon className="w-5 h-5" />
             </button>
           </div>
+
+          {lastSaved && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Last saved: {new Date(lastSaved).toLocaleTimeString()}
+            </p>
+          )}
           
           <div className={`space-y-2 transition-all duration-200 ${showFieldMenu ? 'opacity-100' : 'opacity-0 h-0 overflow-hidden'}`}>
             {FIELD_TYPES.map((type) => (
