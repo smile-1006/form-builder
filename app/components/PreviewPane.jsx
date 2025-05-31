@@ -10,7 +10,7 @@ export default function PreviewPane() {
       name: field.id,
       placeholder: field.placeholder,
       required: field.required,
-      className: "mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500",
+      className: "mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500",
       "aria-describedby": field.helpText ? `${field.id}-description` : undefined
     };
 
@@ -33,7 +33,7 @@ export default function PreviewPane() {
           <input
             type="checkbox"
             {...commonProps}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
           />
         );
       case 'radio':
@@ -46,9 +46,9 @@ export default function PreviewPane() {
                   id={`${field.id}-${option}`}
                   name={field.id}
                   value={option}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="h-4 w-4 border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor={`${field.id}-${option}`} className="ml-2 block text-sm text-gray-900">
+                <label htmlFor={`${field.id}-${option}`} className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
                   {option}
                 </label>
               </div>
@@ -61,18 +61,18 @@ export default function PreviewPane() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow">
-      <h2 className="text-lg font-semibold mb-4">Form Preview - Step {currentStep}</h2>
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Form Preview - Step {currentStep}</h2>
       <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
         {currentFields.map((field) => (
           <div key={field.id}>
-            <label htmlFor={field.id} className="block text-sm font-medium text-gray-700">
+            <label htmlFor={field.id} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               {field.label}
               {field.required && <span className="text-red-500 ml-1">*</span>}
             </label>
             {renderField(field)}
             {field.helpText && (
-              <p className="mt-2 text-sm text-gray-500" id={`${field.id}-description`}>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400" id={`${field.id}-description`}>
                 {field.helpText}
               </p>
             )}
