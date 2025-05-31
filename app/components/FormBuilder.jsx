@@ -55,7 +55,6 @@ export default function FormBuilder() {
     addField, 
     removeField,
     updateField: updateFieldInStore,
-    duplicateField,
     reorderFields, 
     saveForm,
     currentStep,
@@ -66,11 +65,66 @@ export default function FormBuilder() {
     history,
     currentHistoryIndex,
     formTitle,
-    setFormTitle
+    setFormTitle,
+    device
   } = useFormStore();
   
   const [showFieldMenu, setShowFieldMenu] = useState(false);
+  const [savedForms, setSavedForms] = useState([]);
 
+  // Get preview width based on device
+  const getPreviewWidth = () => {
+    switch (device) {
+      case 'mobile':
+        return 375;
+      case 'tablet':
+        return 768;
+      case 'desktop':
+      default:
+        return 1024;
+    }
+  };
+
+  // Use getPreviewWidth in PreviewPane or pass as prop
+  // Assuming PreviewPane accepts a width prop for preview size
+  // Pass previewWidth to PreviewPane component
+  const previewWidth = getPreviewWidth();
+
+  // Handle save form and store saved form info
+  const handleSave = () => {
+    const formId = saveForm();
+    if (formId) {
+      setSavedForms(prev => [...prev, { id: formId, title: formTitle || `Form ${prev.length + 1}` }]);
+    }
+  };
+
+  // Prebuilt templates example
+  const PREBUILT_TEMPLATES = [
+    {
+      id: 'contact-form',
+      title: 'Contact Form',
+      fields: [
+        { id: crypto.randomUUID(), type: 'text', label: 'Name', required: true, step: currentStep },
+        { id: crypto.randomUUID(), type: 'text', label: 'Email', required: true, step: currentStep },
+        { id: crypto.randomUUID(), type: 'textarea', label: 'Message', required: false, step: currentStep }
+      ]
+    },
+    {
+      id: 'survey',
+      title: 'Survey',
+      fields: [
+        { id: crypto.randomUUID(), type: 'radio', label: 'Are you satisfied?', options: ['Yes', 'No'], required: true, step: currentStep },
+        { id: crypto.randomUUID(), type: 'checkbox', label: 'Subscribe to newsletter', required: false, step: currentStep }
+      ]
+    }
+  ];
+
+  // Add prebuilt template fields to form
+  const handleAddTemplate = (template) => {
+    template.fields.forEach(field => addField(field));
+    setShowFieldMenu(false);
+  };
+  
   const handleAddField = (type) => {
     const newField = {
       id: crypto.randomUUID(),
@@ -90,6 +144,8 @@ export default function FormBuilder() {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor)
   );
+
+  // Pass previewWidth to PreviewPane component
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -155,12 +211,30 @@ export default function FormBuilder() {
               {/* Field Controls */}
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Add Fields</h2>
-                <button
-                  onClick={() => setShowFieldMenu(true)}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                >
-                  <PlusIcon className="w-5 h-5" />
-                </button>
+              <button
+                onClick={() => setShowFieldMenu(true)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
+              >
+                <PlusIcon className="w-5 h-5" />
+              </button>
+            </div>
+            
+              {/* Prebuilt Templates */}
+              <div className="mb-4">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Prebuilt Templates</h2>
+                <div className="space-y-2">
+                  {PREBUILT_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      onClick={() => handleAddTemplate(template)}
+                      className="w-full p-3 text-left rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-green-500 hover:shadow-sm transition-all"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <span className="font-medium text-gray-900 dark:text-white">{template.title}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Templates */}
@@ -188,7 +262,7 @@ export default function FormBuilder() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Actions</h2>
               <div className="space-y-2">
                 <button
-                  onClick={() => saveForm()}
+                  onClick={handleSave}
                   className="w-full flex items-center justify-center space-x-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <DocumentArrowDownIcon className="w-5 h-5" />
@@ -220,6 +294,25 @@ export default function FormBuilder() {
                     <ArrowUturnRightIcon className="w-5 h-5 mx-auto" />
                   </button>
                 </div>
+                {/* Saved Forms Section */}
+                {savedForms.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-md font-semibold text-gray-900 dark:text-white mb-2">Saved Forms</h3>
+                    <ul className="space-y-2 max-h-40 overflow-y-auto">
+                      {savedForms.map((form) => (
+                        <li key={form.id} className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-md p-2">
+                          <span className="text-sm text-gray-800 dark:text-gray-200">{form.title}</span>
+                          <button
+                            onClick={() => window.open(`/preview/${form.id}`, '_blank')}
+                            className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                          >
+                            View
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -286,7 +379,7 @@ export default function FormBuilder() {
             <div className="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 pb-4 mb-4">
               <DevicePreviewToggler />
             </div>
-            <PreviewPane />
+            <PreviewPane previewWidth={previewWidth} />
           </div>
         </div>
       </div>
