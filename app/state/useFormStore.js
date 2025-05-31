@@ -69,12 +69,16 @@ const initialState = {
   history: [],
   currentHistoryIndex: -1,
   responses: {},
-  lastSaved: null
+  lastSaved: null,
+  formTitle: ''
 };
 
 export const useFormStore = create(
   devtools((set, get) => ({
     ...initialState,
+
+    // Form title actions
+    setFormTitle: (title) => set({ formTitle: title }),
 
     // Theme actions
     setTheme: (theme) => set({ theme }),

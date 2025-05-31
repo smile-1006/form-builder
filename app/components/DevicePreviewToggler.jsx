@@ -23,20 +23,20 @@ export default function DevicePreviewToggler() {
   ];
 
   return (
-    <div className="flex items-center justify-center space-x-2 mb-6">
+    <div className="flex items-center justify-center gap-1">
       {devices.map(({ id, label, icon: Icon }) => (
         <button
           key={id}
           onClick={() => setDevice(id)}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+          className={`flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-all ${
             device === id
-              ? 'bg-blue-600 text-white shadow-md scale-105'
+              ? 'bg-blue-600 text-white shadow-sm'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
           }`}
-          title={`Switch to ${label} view`}
+          title={label}
         >
-          <Icon className="w-5 h-5" />
-          <span className="hidden sm:inline">{label}</span>
+          <Icon className="w-4 h-4" />
+          <span className="hidden md:inline">{label}</span>
         </button>
       ))}
     </div>

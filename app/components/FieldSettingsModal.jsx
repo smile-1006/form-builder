@@ -1,14 +1,58 @@
 import { Fragment } from 'react';
+import PropTypes from 'prop-types';
 import { Dialog, Transition } from '@headlessui/react';
 import { useFormStore } from '../state/useFormStore';
 
-export default function FieldSettingsModal({ field, onClose }) {
-  const { updateField, totalSteps } = useFormStore();
+FieldSettingsModal.propTypes = {
+  field: PropTypes.shape({
+    id: PropTypes.string,
+    type: PropTypes.string,
+    label: PropTypes.string,
+    placeholder: PropTypes.string,
+    helpText: PropTypes.string,
+    required: PropTypes.bool,
+    step: PropTypes.number,
+    validation: PropTypes.shape({
+      minLength: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      maxLength: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      pattern: PropTypes.string,
+      message: PropTypes.string
+    }),
+    options: PropTypes.arrayOf(PropTypes.string)
+  }),
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
+  onSave: PropTypes.func
+};
+
+export default function FieldSettingsModal({ field = {}, isOpen = false, onClose = () => {}, onSave = () => {} }) {
+  const { totalSteps } = useFormStore();
+
+  if (!isOpen) {
+    return null;
+  }
+
+  const {
+    type = '',
+    label = '',
+    placeholder = '',
+    helpText = '',
+    required = false,
+    step = 1,
+    validation = {
+      minLength: '',
+      maxLength: '',
+      pattern: '',
+      message: ''
+    },
+    options = []
+  } = field;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const updates = {
+      ...field,
       label: formData.get('label'),
       placeholder: formData.get('placeholder'),
       required: formData.get('required') === 'on',
@@ -22,19 +66,19 @@ export default function FieldSettingsModal({ field, onClose }) {
       }
     };
     
-    if (field.type === 'select' || field.type === 'radio') {
+    if (type === 'select' || type === 'radio') {
       updates.options = formData.get('options')
         .split('\n')
         .map(opt => opt.trim())
         .filter(Boolean);
     }
     
-    updateField(field.id, updates);
+    onSave(updates);
     onClose();
   };
 
   return (
-    <Transition appear show={true} as={Fragment}>
+    <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-10" onClose={onClose}>
         <Transition.Child
           as={Fragment}
@@ -61,155 +105,164 @@ export default function FieldSettingsModal({ field, onClose }) {
             >
               <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 shadow-xl transition-all">
                 <Dialog.Title className="text-lg font-medium mb-4 text-gray-900 dark:text-white">
-                  Edit {field.type} Field
+                  Edit {type} Field
                 </Dialog.Title>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="label" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Label
-                      <input
-                        type="text"
-                        name="label"
-                        defaultValue={field.label}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
                     </label>
+                    <input
+                      id="label"
+                      type="text"
+                      name="label"
+                      defaultValue={label}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="placeholder" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Placeholder
-                      <input
-                        type="text"
-                        name="placeholder"
-                        defaultValue={field.placeholder}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      />
                     </label>
+                    <input
+                      id="placeholder"
+                      type="text"
+                      name="placeholder"
+                      defaultValue={placeholder}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <label htmlFor="step" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Step
-                      <select
-                        name="step"
-                        defaultValue={field.step}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                      >
-                        {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
-                          <option key={step} value={step}>
-                            Step {step}
-                          </option>
-                        ))}
-                      </select>
                     </label>
+                    <select
+                      id="step"
+                      name="step"
+                      defaultValue={step}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    >
+                      {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  {(field.type === 'select' || field.type === 'radio') && (
+                  {(type === 'select' || type === 'radio') && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label htmlFor="options" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Options (one per line)
-                        <textarea
-                          name="options"
-                          defaultValue={field.options?.join('\n')}
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          rows={4}
-                        />
                       </label>
+                      <textarea
+                        id="options"
+                        name="options"
+                        defaultValue={options.join('\n')}
+                        rows={4}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Help Text
+                    <label htmlFor="required" className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
                       <input
-                        type="text"
-                        name="helpText"
-                        defaultValue={field.helpText}
-                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        id="required"
+                        type="checkbox"
+                        name="required"
+                        defaultChecked={required}
+                        className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
                       />
+                      <span className="ml-2">Required</span>
                     </label>
+                  </div>
+
+                  <div>
+                    <label htmlFor="helpText" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Help Text
+                    </label>
+                    <input
+                      id="helpText"
+                      type="text"
+                      name="helpText"
+                      defaultValue={helpText}
+                      className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">Validation</h3>
+                    <h4 className="font-medium text-sm text-gray-900 dark:text-white">Validation</h4>
                     
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Min Length
-                          <input
-                            type="number"
-                            name="minLength"
-                            defaultValue={field.validation?.minLength}
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Max Length
-                          <input
-                            type="number"
-                            name="maxLength"
-                            defaultValue={field.validation?.maxLength}
-                            className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </label>
-                      </div>
-                    </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Pattern (regex)
-                        <input
-                          type="text"
-                          name="pattern"
-                          defaultValue={field.validation?.pattern}
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
+                      <label htmlFor="minLength" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Minimum Length
                       </label>
+                      <input
+                        id="minLength"
+                        type="number"
+                        name="minLength"
+                        defaultValue={validation.minLength}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      <label htmlFor="maxLength" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Maximum Length
+                      </label>
+                      <input
+                        id="maxLength"
+                        type="number"
+                        name="maxLength"
+                        defaultValue={validation.maxLength}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="pattern" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Pattern (Regular Expression)
+                      </label>
+                      <input
+                        id="pattern"
+                        type="text"
+                        name="pattern"
+                        defaultValue={validation.pattern}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="validationMessage" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                         Validation Message
-                        <input
-                          type="text"
-                          name="validationMessage"
-                          defaultValue={field.validation?.message}
-                          className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        />
                       </label>
+                      <input
+                        id="validationMessage"
+                        type="text"
+                        name="validationMessage"
+                        defaultValue={validation.message}
+                        className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      />
                     </div>
                   </div>
 
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name="required"
-                      defaultChecked={field.required}
-                      className="h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
-                    />
-                    <label className="ml-2 block text-sm text-gray-900 dark:text-gray-100">
-                      Required field
-                    </label>
-                  </div>
-
-                  <div className="mt-4 flex justify-end space-x-2">
+                  <div className="mt-6 flex justify-end space-x-3">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
-                      Save
+                      Save Changes
                     </button>
                   </div>
                 </form>

@@ -1,11 +1,21 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { PencilIcon, TrashIcon, ChevronUpDownIcon } from '@heroicons/react/24/outline';
-import { useFormStore } from '../state/useFormStore';
+import PropTypes from 'prop-types';
 
-export default function FieldBlock({ field, onEdit }) {
-  const removeField = useFormStore(state => state.removeField);
-  
+FieldBlock.propTypes = {
+  field: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    required: PropTypes.bool,
+    helpText: PropTypes.string
+  }).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired
+};
+
+export default function FieldBlock({ field, onEdit, onDelete }) {
   const {
     attributes,
     listeners,
@@ -19,6 +29,18 @@ export default function FieldBlock({ field, onEdit }) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  };
+
+  const handleDelete = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    console.log('Delete clicked for field:', field.id);
+    onDelete(field.id);
+  };
+
+  const handleEdit = (e) => {
+    e.stopPropagation(); // Prevent event bubbling
+    console.log('Edit clicked for field:', field.id);
+    onEdit(field);
   };
 
   return (
@@ -62,14 +84,16 @@ export default function FieldBlock({ field, onEdit }) {
           
           <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              onClick={() => onEdit(field)}
+              onClick={handleEdit}
+              type="button"
               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
               title="Edit field"
             >
               <PencilIcon className="w-5 h-5" />
             </button>
             <button
-              onClick={() => removeField(field.id)}
+              onClick={handleDelete}
+              type="button"
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg transition-colors"
               title="Delete field"
             >
