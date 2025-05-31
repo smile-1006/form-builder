@@ -104,18 +104,23 @@ export default function FormBuilder() {
     
     reorderFields(newFields);
   };
-
   const handleDeleteField = (fieldId) => {
-    console.log('handleDeleteField called with id:', fieldId);
-    removeField(fieldId);
-    if (selectedField?.id === fieldId) {
+    // The fieldId might come directly or from a field object
+    const id = typeof fieldId === 'object' ? fieldId.id : fieldId;
+    console.log('handleDeleteField called with id:', id);
+    removeField(id);
+    if (selectedField?.id === id) {
       setSelectedField(null);
     }
   };
 
   const handleEditField = (field) => {
-    console.log('handleEditField called with field:', field);
-    setSelectedField(field);
+    // The field might come as an ID or as a field object
+    const fieldToEdit = typeof field === 'string' ? fields.find(f => f.id === field) : field;
+    console.log('handleEditField called with field:', fieldToEdit);
+    if (fieldToEdit) {
+      setSelectedField(fieldToEdit);
+    }
   };
 
   const handleUpdateField = (updatedField) => {
@@ -263,11 +268,10 @@ export default function FormBuilder() {
                     </div>
                   ) : (
                     currentFields.map((field) => (
-                      <SortableItem key={field.id} id={field.id}>
-                        <FieldBlock
+                      <SortableItem key={field.id} id={field.id}>                        <FieldBlock
                           field={field}
-                          onDelete={() => handleDeleteField(field.id)}
-                          onEdit={() => handleEditField(field)}
+                          onDelete={handleDeleteField}
+                          onEdit={handleEditField}
                         />
                       </SortableItem>
                     ))

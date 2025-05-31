@@ -31,18 +31,6 @@ export default function FieldBlock({ field, onEdit, onDelete }) {
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleDelete = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    console.log('Delete clicked for field:', field.id);
-    onDelete(field.id);
-  };
-
-  const handleEdit = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
-    console.log('Edit clicked for field:', field.id);
-    onEdit(field);
-  };
-
   return (
     <div
       ref={setNodeRef}
@@ -84,7 +72,10 @@ export default function FieldBlock({ field, onEdit, onDelete }) {
           
           <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
-              onClick={handleEdit}
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(field);
+              }}
               type="button"
               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/50 rounded-lg transition-colors"
               title="Edit field"
@@ -92,7 +83,10 @@ export default function FieldBlock({ field, onEdit, onDelete }) {
               <PencilIcon className="w-5 h-5" />
             </button>
             <button
-              onClick={handleDelete}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(field.id);
+              }}
               type="button"
               className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50 rounded-lg transition-colors"
               title="Delete field"

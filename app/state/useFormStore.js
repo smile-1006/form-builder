@@ -64,7 +64,7 @@ const initialState = {
   currentStep: 1,
   totalSteps: 1,
   device: 'desktop',
-  formId: null,
+  formId: '',
   theme: 'light',
   history: [],
   currentHistoryIndex: -1,

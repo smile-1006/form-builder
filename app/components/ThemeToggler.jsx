@@ -1,12 +1,22 @@
 import { MoonIcon, SunIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import { useFormStore } from '../state/useFormStore';
 
-export default function ThemeToggler() {
+export function ThemeToggler() {
   const { theme, setTheme } = useFormStore();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
+
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <button
@@ -22,3 +32,5 @@ export default function ThemeToggler() {
     </button>
   );
 }
+
+export default ThemeToggler;
