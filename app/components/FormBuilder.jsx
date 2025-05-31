@@ -266,8 +266,8 @@ export default function FormBuilder() {
                       <SortableItem key={field.id} id={field.id}>
                         <FieldBlock
                           field={field}
-                          onDelete={handleDeleteField}
-                          onEdit={handleEditField}
+                          onDelete={() => handleDeleteField(field.id)}
+                          onEdit={() => handleEditField(field)}
                         />
                       </SortableItem>
                     ))
